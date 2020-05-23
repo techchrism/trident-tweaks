@@ -66,6 +66,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
                         {
                             p.getInventory().setItemInOffHand(i.clone());
                             i.setAmount(0);
+                            p.updateInventory();
                             break;
                         }
                     }
