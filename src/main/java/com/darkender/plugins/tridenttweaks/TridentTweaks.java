@@ -9,8 +9,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -31,6 +31,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     //TODO make these config options
     private boolean enableOffhandReturn = true;
     private boolean enableVoidSaving = true;
+    private boolean disableLoyaltyPortals = true;
     
     private BukkitTask voidSavingTask = null;
     private HashMap<UUID, Block> platforms;
@@ -94,6 +95,16 @@ public class TridentTweaks extends JavaPlugin implements Listener
         {
             voidSavingTask.cancel();
             voidSavingTask = null;
+        }
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityPortal(EntityPortalEvent event)
+    {
+        // Doesn't work with end gateways: https://hub.spigotmc.org/jira/browse/SPIGOT-3838
+        if(disableLoyaltyPortals && event.getEntity().hasMetadata("loyalty"))
+        {
+            event.setCancelled(true);
         }
     }
     
