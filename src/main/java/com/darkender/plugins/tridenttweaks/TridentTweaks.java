@@ -8,9 +8,11 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,6 +21,8 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 public class TridentTweaks extends JavaPlugin implements Listener
@@ -92,7 +96,23 @@ public class TridentTweaks extends JavaPlugin implements Listener
         }
     }
     
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
+    public void onChunkUnload(ChunkUnloadEvent event)
+    {
+        // Remove any trident saving plaforms if the chunk they're in gets unloaded (so barrier blocks don't get saved)
+        Iterator<Map.Entry<UUID, Block>> iterator = platforms.entrySet().iterator();
+        while(iterator.hasNext())
+        {
+            Map.Entry<UUID, Block> entry = iterator.next();
+            if(entry.getValue().getChunk().equals(event.getChunk()))
+            {
+                entry.getValue().setType(Material.AIR);
+                iterator.remove();
+            }
+        }
+    }
+    
+    @EventHandler(ignoreCancelled = true)
     public void onProjectileLaunch(ProjectileLaunchEvent event)
     {
         if(event.getEntityType() == EntityType.TRIDENT && (event.getEntity().getShooter() instanceof Player))
