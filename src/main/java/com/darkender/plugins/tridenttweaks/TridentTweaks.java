@@ -44,8 +44,12 @@ public class TridentTweaks extends JavaPlugin implements Listener
     {
         platforms = new HashMap<>();
         
+        TridentTweaksCommand tridentTweaksCommand = new TridentTweaksCommand(this);
+        getCommand("tridenttweaks").setExecutor(tridentTweaksCommand);
+        getCommand("tridenttweaks").setTabCompleter(tridentTweaksCommand);
+        
         getServer().getPluginManager().registerEvents(this, this);
-        setupVoidSaving();
+        reload();
     }
     
     private void setupVoidSaving()
@@ -95,6 +99,18 @@ public class TridentTweaks extends JavaPlugin implements Listener
             voidSavingTask.cancel();
             voidSavingTask = null;
         }
+    }
+    
+    public void reload()
+    {
+        saveDefaultConfig();
+        reloadConfig();
+        
+        enableBedrockImpaling = getConfig().getBoolean("enable-bedrock-impaling");
+        enableVoidSaving = getConfig().getBoolean("enable-void-saving");
+        enableOffhandReturn = getConfig().getBoolean("enable-offhand-return");
+        disableLoyaltyPortals = getConfig().getBoolean("disable-loyalty-portals");
+        setupVoidSaving();
     }
     
     private boolean canSeeSky(Entity e)

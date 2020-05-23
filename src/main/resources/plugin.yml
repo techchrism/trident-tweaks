@@ -3,3 +3,13 @@ version: ${project.version}
 api-version: 1.14
 author: Techdoodle
 main: com.darkender.plugins.tridenttweaks.TridentTweaks
+commands:
+  tridenttweaks:
+    description: Command to check version or reload the config
+    usage: /tridenttweaks reload
+    permission: tridenttweaks.cmd
+permissions:
+  tridenttweaks.cmd:
+    default: op
+  tridenttweaks.reload:
+    default: op
