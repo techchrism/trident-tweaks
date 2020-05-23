@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
@@ -56,7 +57,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
                     {
                         for(Trident trident : w.getEntitiesByClass(Trident.class))
                         {
-                            if(!platforms.containsKey(trident.getUniqueId()))
+                            if(trident.hasMetadata("loyalty") && !platforms.containsKey(trident.getUniqueId()))
                             {
                                 // Check if the trident is *about* to be in the void (possible to save it by placing blocks)
                                 Location futurePos = trident.getLocation().clone().add(trident.getVelocity());
@@ -118,14 +119,35 @@ public class TridentTweaks extends JavaPlugin implements Listener
         if(event.getEntityType() == EntityType.TRIDENT && (event.getEntity().getShooter() instanceof Player))
         {
             Player p = (Player) event.getEntity().getShooter();
-            
-            // Check if it was thrown from the offhand
-            if(enableOffhandReturn &&
-                    p.getInventory().getItemInOffHand().getType() == Material.TRIDENT &&
-                    p.getInventory().getItemInMainHand().getType() != Material.TRIDENT)
+            ItemStack tridentItem = null;
+            boolean fromOffhand = false;
+            // If the player is holding two tridents, only the one from the main hand will be thrown
+            // (Unless the player starts charging in the offhand then equips a trident in the main hand)
+            if(p.getInventory().getItemInMainHand().getType() == Material.TRIDENT)
             {
-                event.getEntity().setMetadata("offhand", new FixedMetadataValue(this, true));
+                tridentItem = p.getInventory().getItemInMainHand();
             }
+            else if(p.getInventory().getItemInOffHand().getType() == Material.TRIDENT)
+            {
+                fromOffhand = true;
+                tridentItem = p.getInventory().getItemInOffHand();
+            }
+            
+            // The trident could be thrown "artificially"
+            if(tridentItem != null)
+            {
+                // Check if it was thrown from the offhand
+                if(enableOffhandReturn && fromOffhand)
+                {
+                    event.getEntity().setMetadata("offhand", new FixedMetadataValue(this, true));
+                }
+                
+                if(tridentItem.getEnchantmentLevel(Enchantment.LOYALTY) != 0)
+                {
+                    event.getEntity().setMetadata("loyalty", new FixedMetadataValue(this, true));
+                }
+            }
+            
         }
     }
     
