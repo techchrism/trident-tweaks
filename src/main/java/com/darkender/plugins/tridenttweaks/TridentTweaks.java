@@ -5,11 +5,13 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
@@ -32,6 +34,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     private boolean enableOffhandReturn = true;
     private boolean enableVoidSaving = true;
     private boolean disableLoyaltyPortals = true;
+    private boolean enableBedrockImpaling = true;
     
     private BukkitTask voidSavingTask = null;
     private HashMap<UUID, Block> platforms;
@@ -67,16 +70,12 @@ public class TridentTweaks extends JavaPlugin implements Listener
                                     futurePos.getBlock().setType(Material.BARRIER);
                                     platforms.put(trident.getUniqueId(), futurePos.getBlock());
                                     // Remove the platform after 1 second (if it still exists)
-                                    getServer().getScheduler().scheduleSyncDelayedTask(TridentTweaks.this, new Runnable()
+                                    getServer().getScheduler().scheduleSyncDelayedTask(TridentTweaks.this, () ->
                                     {
-                                        @Override
-                                        public void run()
+                                        if(platforms.containsKey(trident.getUniqueId()))
                                         {
-                                            if(platforms.containsKey(trident.getUniqueId()))
-                                            {
-                                                platforms.get(trident.getUniqueId()).setType(Material.AIR);
-                                                platforms.remove(trident.getUniqueId());
-                                            }
+                                            platforms.get(trident.getUniqueId()).setType(Material.AIR);
+                                            platforms.remove(trident.getUniqueId());
                                         }
                                     }, 20L);
                                 }
@@ -98,6 +97,102 @@ public class TridentTweaks extends JavaPlugin implements Listener
         }
     }
     
+    private boolean canSeeSky(Entity e)
+    {
+        Location min = e.getBoundingBox().getMin().toLocation(e.getWorld());
+        Location max = e.getBoundingBox().getMax().toLocation(e.getWorld());
+        int x = min.getBlockX();
+        int z = min.getBlockZ();
+        do
+        {
+            do
+            {
+                try
+                {
+                    Block highest = e.getLocation().getWorld().getHighestBlockAt(e.getLocation());
+                    if(highest.getY() > e.getLocation().getBlockY())
+                    {
+                        return false;
+                    }
+                }
+                catch(Exception exception)
+                {
+                    return true;
+                }
+                z++;
+            }
+            while(z <= max.getBlockZ());
+            x++;
+        }
+        while(x <= max.getBlockX());
+        return true;
+    }
+    
+    private boolean isInWater(Entity e)
+    {
+        Location min = e.getBoundingBox().getMin().toLocation(e.getWorld());
+        Location max = e.getBoundingBox().getMax().toLocation(e.getWorld());
+        int x = min.getBlockX();
+        int y = min.getBlockY();
+        int z = min.getBlockZ();
+        do
+        {
+            do
+            {
+                do
+                {
+                    if(e.getWorld().getBlockAt(x, y, z).getType() == Material.WATER)
+                    {
+                        return true;
+                    }
+                    
+                    y++;
+                }
+                while(y <= max.getBlockY());
+                z++;
+            }
+            while(z <= max.getBlockZ());
+            x++;
+        }
+        while(x <= max.getBlockX());
+        return false;
+    }
+    
+    public boolean isAquatic(EntityType type)
+    {
+        return (type == EntityType.DOLPHIN || type == EntityType.GUARDIAN || type == EntityType.ELDER_GUARDIAN ||
+                type == EntityType.SQUID || type == EntityType.TURTLE || type == EntityType.COD ||
+                type == EntityType.SALMON || type == EntityType.PUFFERFISH || type == EntityType.TROPICAL_FISH);
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event)
+    {
+        if(!enableBedrockImpaling)
+        {
+            return;
+        }
+    
+        Entity e = event.getEntity();
+        int impaling = 0;
+        if(event.getDamager().getType() == EntityType.TRIDENT && event.getDamager().hasMetadata("impaling"))
+        {
+            impaling = event.getDamager().getMetadata("impaling").get(0).asInt();
+        }
+        else if(event.getDamager().getType() == EntityType.PLAYER)
+        {
+            impaling = ((Player) event.getDamager()).getInventory().getItemInMainHand().getEnchantmentLevel(Enchantment.IMPALING);
+        }
+        
+        if(impaling > 0)
+        {
+            if(!isAquatic(e.getType()) && ((e.getWorld().hasStorm() && canSeeSky(e)) || isInWater(e)))
+            {
+                event.setDamage(event.getDamage() + (2.5 * impaling));
+            }
+        }
+    }
+    
     @EventHandler(ignoreCancelled = true)
     public void onEntityPortal(EntityPortalEvent event)
     {
@@ -111,7 +206,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true)
     public void onChunkUnload(ChunkUnloadEvent event)
     {
-        // Remove any trident saving plaforms if the chunk they're in gets unloaded (so barrier blocks don't get saved)
+        // Remove any trident saving platforms if the chunk they're in gets unloaded (so barrier blocks don't get saved)
         Iterator<Map.Entry<UUID, Block>> iterator = platforms.entrySet().iterator();
         while(iterator.hasNext())
         {
@@ -153,9 +248,16 @@ public class TridentTweaks extends JavaPlugin implements Listener
                     event.getEntity().setMetadata("offhand", new FixedMetadataValue(this, true));
                 }
                 
+                if(enableBedrockImpaling && tridentItem.getEnchantmentLevel(Enchantment.IMPALING) != 0)
+                {
+                    event.getEntity().setMetadata("impaling", new FixedMetadataValue(this,
+                            tridentItem.getEnchantmentLevel(Enchantment.IMPALING)));
+                }
+                
                 if(tridentItem.getEnchantmentLevel(Enchantment.LOYALTY) != 0)
                 {
-                    event.getEntity().setMetadata("loyalty", new FixedMetadataValue(this, true));
+                    event.getEntity().setMetadata("loyalty", new FixedMetadataValue(this,
+                            tridentItem.getEnchantmentLevel(Enchantment.LOYALTY)));
                 }
             }
             
