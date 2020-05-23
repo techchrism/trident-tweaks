@@ -1,0 +1,5 @@
+name: TridentTweaks
+version: ${project.version}
+api-version: 1.14
+author: Techdoodle
+main: com.darkender.plugins.tridenttweaks.TridentTweaks
