@@ -148,17 +148,17 @@ public class TridentTweaks extends JavaPlugin implements Listener
                 @Override
                 public void run()
                 {
-                    for(ItemStack i : p.getInventory().getContents())
+                    for(ItemStack i : p.getInventory())
                     {
-                        // If we find the trident, put it in the offhand
                         if(i != null && i.equals(item))
                         {
+                            // If we find the trident, put it in the offhand
+                            p.getInventory().remove(i);
                             p.getInventory().setItemInOffHand(i.clone());
-                            i.setAmount(0);
-                            p.updateInventory();
                             break;
                         }
                     }
+                    p.updateInventory();
                 }
             });
         }
