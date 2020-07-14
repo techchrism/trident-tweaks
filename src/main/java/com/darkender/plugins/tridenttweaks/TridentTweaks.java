@@ -30,7 +30,6 @@ import java.util.UUID;
 
 public class TridentTweaks extends JavaPlugin implements Listener
 {
-    //TODO make these config options
     private boolean enableOffhandReturn = true;
     private boolean enableVoidSaving = true;
     private boolean disableLoyaltyPortals = true;
@@ -174,15 +173,16 @@ public class TridentTweaks extends JavaPlugin implements Listener
         return false;
     }
     
-    public boolean isAquatic(EntityType type)
+    private boolean isAquatic(EntityType type)
     {
+        // I hate this as much as you do
         return (type == EntityType.DOLPHIN || type == EntityType.GUARDIAN || type == EntityType.ELDER_GUARDIAN ||
                 type == EntityType.SQUID || type == EntityType.TURTLE || type == EntityType.COD ||
                 type == EntityType.SALMON || type == EntityType.PUFFERFISH || type == EntityType.TROPICAL_FISH);
     }
     
     @EventHandler(ignoreCancelled = true)
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event)
+    private void onEntityDamageByEntity(EntityDamageByEntityEvent event)
     {
         if(!enableBedrockImpaling)
         {
@@ -210,7 +210,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     }
     
     @EventHandler(ignoreCancelled = true)
-    public void onEntityPortal(EntityPortalEvent event)
+    private void onEntityPortal(EntityPortalEvent event)
     {
         // Doesn't work with end gateways: https://hub.spigotmc.org/jira/browse/SPIGOT-3838
         if(disableLoyaltyPortals && event.getEntity().hasMetadata("loyalty"))
@@ -220,7 +220,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     }
     
     @EventHandler(ignoreCancelled = true)
-    public void onChunkUnload(ChunkUnloadEvent event)
+    private void onChunkUnload(ChunkUnloadEvent event)
     {
         // Remove any trident saving platforms if the chunk they're in gets unloaded (so barrier blocks don't get saved)
         Iterator<Map.Entry<UUID, Block>> iterator = platforms.entrySet().iterator();
@@ -236,7 +236,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     }
     
     @EventHandler(ignoreCancelled = true)
-    public void onProjectileLaunch(ProjectileLaunchEvent event)
+    private void onProjectileLaunch(ProjectileLaunchEvent event)
     {
         if(event.getEntityType() == EntityType.TRIDENT && (event.getEntity().getShooter() instanceof Player))
         {
@@ -281,7 +281,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     }
     
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerPickupArrow(PlayerPickupArrowEvent event)
+    private void onPlayerPickupArrow(PlayerPickupArrowEvent event)
     {
         // Check if this is a trident that should be in the offhand
         if(enableOffhandReturn &&
