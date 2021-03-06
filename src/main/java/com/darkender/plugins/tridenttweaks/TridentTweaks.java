@@ -1,10 +1,12 @@
 package com.darkender.plugins.tridenttweaks;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Drowned;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -12,11 +14,13 @@ import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -26,6 +30,7 @@ import org.bukkit.util.Vector;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 public class TridentTweaks extends JavaPlugin implements Listener
@@ -34,6 +39,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     private boolean enableVoidSaving = true;
     private boolean disableLoyaltyPortals = true;
     private boolean enableBedrockImpaling = true;
+    private boolean enableBedrockDropping = true;
     
     private BukkitTask voidSavingTask = null;
     private HashMap<UUID, Block> platforms;
@@ -109,6 +115,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
         enableVoidSaving = getConfig().getBoolean("enable-void-saving");
         enableOffhandReturn = getConfig().getBoolean("enable-offhand-return");
         disableLoyaltyPortals = getConfig().getBoolean("disable-loyalty-portals");
+        enableBedrockDropping = getConfig().getBoolean("enable-bedrock-dropping");
         setupVoidSaving();
     }
     
@@ -175,7 +182,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
     
     private boolean isAquatic(EntityType type)
     {
-        // I hate this as much as you do
+        // I hate this as much as you do - Spigot API should really implement a better way to do this..
         return (type == EntityType.DOLPHIN || type == EntityType.GUARDIAN || type == EntityType.ELDER_GUARDIAN ||
                 type == EntityType.SQUID || type == EntityType.TURTLE || type == EntityType.COD ||
                 type == EntityType.SALMON || type == EntityType.PUFFERFISH || type == EntityType.TROPICAL_FISH);
@@ -313,5 +320,36 @@ public class TridentTweaks extends JavaPlugin implements Listener
                 }
             });
         }
+    }
+    public class TridentTweaksListener implements Listener{
+
+    	private TridentTweaks plugin;
+    	
+    	public TridentTweaksListener(TridentTweaks plugin) {
+    		this.plugin = plugin;
+    		Bukkit.getPluginManager().registerEvents(this, plugin);
+    	}
+        @EventHandler
+    	public void StickEvent(EntityDeathEvent e) {
+    		if(!enableBedrockDropping) {
+    			return;
+    		}
+    		if(e instanceof Drowned) {
+    			Drowned drown = (Drowned) e.getEntity();
+    			Location loc = drown.getLocation();
+    			World w = drown.getWorld();
+    			Random random = new Random();
+    			Integer num = random.nextInt(100);
+    			if(drown.getEquipment().getItemInMainHand().getType() == Material.TRIDENT) {
+    				return;
+    			}
+    			if(num <= 8) {
+    				Damageable trident = (Damageable) new ItemStack(Material.TRIDENT);
+    				trident.setDamage(random.nextInt(248)+1);
+    				ItemStack tridentstack = (ItemStack) trident.clone();
+    				w.dropItem(loc, tridentstack);
+    			}
+    		}
+    	}
     }
 }
