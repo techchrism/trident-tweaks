@@ -321,35 +321,26 @@ public class TridentTweaks extends JavaPlugin implements Listener
             });
         }
     }
-    public class TridentTweaksListener implements Listener{
-
-    	private TridentTweaks plugin;
-    	
-    	public TridentTweaksListener(TridentTweaks plugin) {
-    		this.plugin = plugin;
-    		Bukkit.getPluginManager().registerEvents(this, plugin);
-    	}
-        @EventHandler
-    	public void StickEvent(EntityDeathEvent e) {
-    		if(!enableBedrockDropping) {
-    			return;
-    		}
-    		if(e instanceof Drowned) {
-    			Drowned drown = (Drowned) e.getEntity();
-    			Location loc = drown.getLocation();
-    			World w = drown.getWorld();
-    			Random random = new Random();
-    			Integer num = random.nextInt(100);
-    			if(drown.getEquipment().getItemInMainHand().getType() == Material.TRIDENT) {
-    				return;
-    			}
-    			if(num <= 8) {
-    				Damageable trident = (Damageable) new ItemStack(Material.TRIDENT);
-    				trident.setDamage(random.nextInt(248)+1);
-    				ItemStack tridentstack = (ItemStack) trident.clone();
-    				w.dropItem(loc, tridentstack);
-    			}
-    		}
-    	}
+    @EventHandler
+    public void DeathEvent(EntityDeathEvent e) {
+        if(!enableBedrockDropping) {
+            return;
+        }
+        if(e.getEntity() instanceof Drowned) {
+            Drowned drown = (Drowned) e.getEntity();
+            Location loc = drown.getLocation();
+            World w = drown.getWorld();
+            Random random = new Random();
+            Integer num = random.nextInt(100);
+            if(drown.getEquipment().getItemInMainHand().getType() == Material.TRIDENT) {
+                return;
+            }
+            if(num <= 8) {
+                Damageable trident = (Damageable) new ItemStack(Material.TRIDENT);
+                trident.setDamage(random.nextInt(248)+1);
+                ItemStack tridentstack = (ItemStack) trident.clone();
+                w.dropItem(loc, tridentstack);
+            }
+        }
     }
 }
