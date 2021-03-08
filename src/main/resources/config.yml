@@ -10,3 +10,6 @@ enable-offhand-return: true
 # Disables tridents enchanted with loyalty from going through portals
 # (which makes the trident not return until the player goes through the portal)
 disable-loyalty-portals: true
+
+# Makes drowned mobs drop tridents as often as they do in bedrock edition (8% of the time)
+enable-bedrock-dropping: true

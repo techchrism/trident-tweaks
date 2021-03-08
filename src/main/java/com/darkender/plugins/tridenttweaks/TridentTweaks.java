@@ -1,16 +1,11 @@
 package com.darkender.plugins.tridenttweaks;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Drowned;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Trident;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -27,11 +22,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class TridentTweaks extends JavaPlugin implements Listener
 {
@@ -195,7 +186,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
         {
             return;
         }
-    
+        
         Entity e = event.getEntity();
         int impaling = 0;
         if(event.getDamager().getType() == EntityType.TRIDENT && event.getDamager().hasMetadata("impaling"))
@@ -292,9 +283,9 @@ public class TridentTweaks extends JavaPlugin implements Listener
     {
         // Check if this is a trident that should be in the offhand
         if(enableOffhandReturn &&
-               event.getArrow() instanceof Trident &&
-               event.getArrow().hasMetadata("offhand") &&
-               event.getPlayer().getInventory().getItemInOffHand().getType() == Material.AIR)
+                event.getArrow() instanceof Trident &&
+                event.getArrow().hasMetadata("offhand") &&
+                event.getPlayer().getInventory().getItemInOffHand().getType() == Material.AIR)
         {
             // The itemstack gets modified after the event so it must be cloned for future comparison
             ItemStack item = event.getItem().getItemStack().clone();
@@ -322,26 +313,31 @@ public class TridentTweaks extends JavaPlugin implements Listener
         }
     }
     
-    @EventHandler
-	public void DeathEvent(EntityDeathEvent e) {
-		if(!enableBedrockDropping) {
-			return;
-		}
-		if(e.getEntity() instanceof Drowned) {
-			Drowned drown = (Drowned) e.getEntity();
-			Location loc = drown.getLocation();
-			World w = drown.getWorld();
-			Random random = new Random();
-			Integer num = random.nextInt(100);
-			if(drown.getEquipment().getItemInMainHand().getType() == Material.TRIDENT) {
-				return;
-			}
-			if(num <= 8) {
-				Damageable trident = (Damageable) new ItemStack(Material.TRIDENT);
-				trident.setDamage(random.nextInt(248)+1);
-				ItemStack tridentstack = (ItemStack) trident.clone();
-				w.dropItem(loc, tridentstack);
-			}
-		}
+    @EventHandler(ignoreCancelled = true)
+    public void DeathEvent(EntityDeathEvent e)
+    {
+        if(!enableBedrockDropping)
+        {
+            return;
+        }
+        if(e.getEntity() instanceof Drowned)
+        {
+            Drowned drown = (Drowned) e.getEntity();
+            Location loc = drown.getLocation();
+            World w = drown.getWorld();
+            Random random = new Random();
+            int num = random.nextInt(100);
+            if(drown.getEquipment().getItemInMainHand().getType() == Material.TRIDENT)
+            {
+                return;
+            }
+            if(num <= 8)
+            {
+                Damageable trident = (Damageable) new ItemStack(Material.TRIDENT);
+                trident.setDamage(random.nextInt(248) + 1);
+                ItemStack tridentstack = (ItemStack) trident.clone();
+                w.dropItem(loc, tridentstack);
+            }
+        }
     }
 }
