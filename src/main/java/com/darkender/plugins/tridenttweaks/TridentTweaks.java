@@ -328,19 +328,15 @@ public class TridentTweaks extends JavaPlugin implements Listener
             {
                 return;
             }
-            
-            Location loc = drown.getLocation();
-            World w = drown.getWorld();
             Random random = new Random();
             int num = random.nextInt(100);
-            
             if(num <= 8)
             {
                 ItemStack trident = new ItemStack(Material.TRIDENT);
                 Damageable meta = (Damageable) trident.getItemMeta();
                 meta.setDamage(random.nextInt(248) + 1);
                 trident.setItemMeta((ItemMeta) meta);
-                w.dropItem(loc, trident);
+                e.getDrops().add(trident);
             }
         }
     }
