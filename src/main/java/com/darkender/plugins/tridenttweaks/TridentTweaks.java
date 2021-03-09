@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -323,20 +324,23 @@ public class TridentTweaks extends JavaPlugin implements Listener
         if(e.getEntity() instanceof Drowned)
         {
             Drowned drown = (Drowned) e.getEntity();
-            Location loc = drown.getLocation();
-            World w = drown.getWorld();
-            Random random = new Random();
-            int num = random.nextInt(100);
             if(drown.getEquipment().getItemInMainHand().getType() == Material.TRIDENT)
             {
                 return;
             }
+            
+            Location loc = drown.getLocation();
+            World w = drown.getWorld();
+            Random random = new Random();
+            int num = random.nextInt(100);
+            
             if(num <= 8)
             {
-                Damageable trident = (Damageable) new ItemStack(Material.TRIDENT);
-                trident.setDamage(random.nextInt(248) + 1);
-                ItemStack tridentstack = (ItemStack) trident.clone();
-                w.dropItem(loc, tridentstack);
+                ItemStack trident = new ItemStack(Material.TRIDENT);
+                Damageable meta = (Damageable) trident.getItemMeta();
+                meta.setDamage(random.nextInt(248) + 1);
+                trident.setItemMeta((ItemMeta) meta);
+                w.dropItem(loc, trident);
             }
         }
     }
