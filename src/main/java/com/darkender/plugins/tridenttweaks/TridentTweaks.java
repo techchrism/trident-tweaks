@@ -1,5 +1,6 @@
 package com.darkender.plugins.tridenttweaks;
 
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -315,16 +316,17 @@ public class TridentTweaks extends JavaPlugin implements Listener
     }
     
     @EventHandler(ignoreCancelled = true)
-    public void DeathEvent(EntityDeathEvent e)
+    private void DeathEvent(EntityDeathEvent event)
     {
         if(!enableBedrockDropping)
         {
             return;
         }
-        if(e.getEntity() instanceof Drowned)
+        if(event.getEntity() instanceof Drowned)
         {
-            Drowned drown = (Drowned) e.getEntity();
-            if(drown.getEquipment().getItemInMainHand().getType() == Material.TRIDENT)
+            Drowned drowned = (Drowned) event.getEntity();
+            if(!drowned.getWorld().getGameRuleValue(GameRule.DO_MOB_LOOT) ||
+                    drowned.getEquipment().getItemInMainHand().getType() == Material.TRIDENT)
             {
                 return;
             }
@@ -336,7 +338,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
                 Damageable meta = (Damageable) trident.getItemMeta();
                 meta.setDamage(random.nextInt(248) + 1);
                 trident.setItemMeta((ItemMeta) meta);
-                e.getDrops().add(trident);
+                event.getDrops().add(trident);
             }
         }
     }
