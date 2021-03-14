@@ -6,7 +6,7 @@
 
     <groupId>com.darkender.plugins.tridenttweaks</groupId>
     <artifactId>tridenttweaks</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <name>TridentTweaks</name>
 
     <properties>

@@ -1,9 +1,6 @@
 package com.darkender.plugins.tridenttweaks;
 
-import org.bukkit.GameRule;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
@@ -36,6 +33,8 @@ public class TridentTweaks extends JavaPlugin implements Listener
     
     private BukkitTask voidSavingTask = null;
     private HashMap<UUID, Block> platforms;
+    
+    private final Random random = new Random();
     
     @Override
     public void onEnable()
@@ -181,6 +180,24 @@ public class TridentTweaks extends JavaPlugin implements Listener
                 type == EntityType.SALMON || type == EntityType.PUFFERFISH || type == EntityType.TROPICAL_FISH);
     }
     
+    private void displayEnchantedHit(Entity entity)
+    {
+        for(int i = 0; i < 16*3; i++)
+        {
+            double d = (this.random.nextFloat() * 2.0F - 1.0F);
+            double e = (this.random.nextFloat() * 2.0F - 1.0F);
+            double f = (this.random.nextFloat() * 2.0F - 1.0F);
+            if(d * d + e * e + f * f <= 1.0D)
+            {
+                Location loc = entity.getLocation().clone();
+                loc.add((entity.getWidth() * (d / 4.0D)),
+                        (entity.getHeight() * (0.5D + e / 4.0D)),
+                        (entity.getWidth() * (f / 4.0D)));
+                loc.getWorld().spawnParticle(Particle.CRIT_MAGIC, loc, 0, d, e + 0.2D, f);
+            }
+        }
+    }
+    
     @EventHandler(ignoreCancelled = true)
     private void onEntityDamageByEntity(EntityDamageByEntityEvent event)
     {
@@ -205,6 +222,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
             if(!isAquatic(e.getType()) && ((e.getWorld().hasStorm() && canSeeSky(e)) || isInWater(e)))
             {
                 event.setDamage(event.getDamage() + (2.5 * impaling));
+                displayEnchantedHit(e);
             }
         }
     }
@@ -330,7 +348,6 @@ public class TridentTweaks extends JavaPlugin implements Listener
             {
                 return;
             }
-            Random random = new Random();
             int num = random.nextInt(100);
             if(num <= 8)
             {
