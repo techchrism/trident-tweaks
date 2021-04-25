@@ -279,6 +279,8 @@ public class TridentTweaks extends JavaPlugin implements Listener
                 // Check if it was thrown from the offhand
                 if(enableOffhandReturn && fromOffhand)
                 {
+                    getLogger().info(p.getName() + " (" + p.getUniqueId().toString() + ") threw a trident from the offhand:");
+                    getLogger().info(tridentItem.toString());
                     event.getEntity().setMetadata("offhand", new FixedMetadataValue(this, true));
                 }
                 
@@ -322,6 +324,7 @@ public class TridentTweaks extends JavaPlugin implements Listener
                         if(i != null && i.equals(item))
                         {
                             // If we find the trident, put it in the offhand
+                            getLogger().info(p.getName() + " (" + p.getUniqueId().toString() + ") *should* have had their trident returned");
                             p.getInventory().remove(i);
                             p.getInventory().setItemInOffHand(i.clone());
                             break;
