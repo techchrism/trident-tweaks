@@ -312,23 +312,25 @@ public class TridentTweaks extends JavaPlugin implements Listener
             Player p = event.getPlayer();
             
             // The item isn't in the inventory yet so schedule a checker
-            getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
+            getServer().getScheduler().scheduleSyncDelayedTask(this, () ->
             {
-                @Override
-                public void run()
+                // Double-check to ensure offhand item is still empty
+                if(event.getPlayer().getInventory().getItemInOffHand().getType() != Material.AIR)
                 {
-                    for(ItemStack i : p.getInventory())
-                    {
-                        if(i != null && i.equals(item))
-                        {
-                            // If we find the trident, put it in the offhand
-                            p.getInventory().remove(i);
-                            p.getInventory().setItemInOffHand(i.clone());
-                            break;
-                        }
-                    }
-                    p.updateInventory();
+                    return;
                 }
+                
+                for(ItemStack i : p.getInventory())
+                {
+                    if(i != null && i.equals(item))
+                    {
+                        // If we find the trident and the offhand is clear, put it in the offhand
+                        p.getInventory().setItemInOffHand(i.clone());
+                        i.setAmount(i.getAmount() - 1);
+                        break;
+                    }
+                }
+                p.updateInventory();
             });
         }
     }
