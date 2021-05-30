@@ -1,6 +1,9 @@
 package com.darkender.plugins.tridenttweaks;
 
-import org.bukkit.*;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
@@ -11,17 +14,13 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.Random;
 
 public class TridentTweaks extends JavaPlugin implements Listener
 {
@@ -31,71 +30,19 @@ public class TridentTweaks extends JavaPlugin implements Listener
     private boolean enableBedrockImpaling = true;
     private boolean enableBedrockDropping = true;
     
-    private BukkitTask voidSavingTask = null;
-    private HashMap<UUID, Block> platforms;
+    private ReflectionUtils reflectionUtils;
     
     private final Random random = new Random();
     
     @Override
     public void onEnable()
     {
-        platforms = new HashMap<>();
-        
         TridentTweaksCommand tridentTweaksCommand = new TridentTweaksCommand(this);
         getCommand("tridenttweaks").setExecutor(tridentTweaksCommand);
         getCommand("tridenttweaks").setTabCompleter(tridentTweaksCommand);
         
         getServer().getPluginManager().registerEvents(this, this);
         reload();
-    }
-    
-    private void setupVoidSaving()
-    {
-        if(enableVoidSaving && voidSavingTask == null)
-        {
-            voidSavingTask = (new BukkitRunnable()
-            {
-                @Override
-                public void run()
-                {
-                    for(World w : getServer().getWorlds())
-                    {
-                        for(Trident trident : w.getEntitiesByClass(Trident.class))
-                        {
-                            if(trident.hasMetadata("loyalty") && !platforms.containsKey(trident.getUniqueId()))
-                            {
-                                // Check if the trident is *about* to be in the void (possible to save it by placing blocks)
-                                Location futurePos = trident.getLocation().clone().add(trident.getVelocity());
-                                if(futurePos.getBlock().getType().isAir() && futurePos.getBlockY() < 5 && futurePos.getBlockY() >= 0)
-                                {
-                                    futurePos.getBlock().setType(Material.BARRIER);
-                                    platforms.put(trident.getUniqueId(), futurePos.getBlock());
-                                    // Remove the platform after 1 second (if it still exists)
-                                    getServer().getScheduler().scheduleSyncDelayedTask(TridentTweaks.this, () ->
-                                    {
-                                        if(platforms.containsKey(trident.getUniqueId()))
-                                        {
-                                            platforms.get(trident.getUniqueId()).setType(Material.AIR);
-                                            platforms.remove(trident.getUniqueId());
-                                        }
-                                    }, 20L);
-                                }
-                                else if(futurePos.getY() < 0)
-                                {
-                                    // If it's already in the void, shoot it upwards
-                                    trident.setVelocity(new Vector(0, 1, 0));
-                                }
-                            }
-                        }
-                    }
-                }
-            }).runTaskTimer(this, 1L, 1L);
-        }
-        else if(!enableVoidSaving && voidSavingTask != null)
-        {
-            voidSavingTask.cancel();
-            voidSavingTask = null;
-        }
     }
     
     public void reload()
@@ -108,7 +55,15 @@ public class TridentTweaks extends JavaPlugin implements Listener
         enableOffhandReturn = getConfig().getBoolean("enable-offhand-return");
         disableLoyaltyPortals = getConfig().getBoolean("disable-loyalty-portals");
         enableBedrockDropping = getConfig().getBoolean("enable-bedrock-dropping");
-        setupVoidSaving();
+        if(enableVoidSaving)
+        {
+            reflectionUtils = new ReflectionUtils();
+            if(!reflectionUtils.isReady())
+            {
+                getLogger().severe("Reflection failed, disabling void saving!");
+                enableVoidSaving = false;
+            }
+        }
     }
     
     private boolean canSeeSky(Entity e)
@@ -238,22 +193,6 @@ public class TridentTweaks extends JavaPlugin implements Listener
     }
     
     @EventHandler(ignoreCancelled = true)
-    private void onChunkUnload(ChunkUnloadEvent event)
-    {
-        // Remove any trident saving platforms if the chunk they're in gets unloaded (so barrier blocks don't get saved)
-        Iterator<Map.Entry<UUID, Block>> iterator = platforms.entrySet().iterator();
-        while(iterator.hasNext())
-        {
-            Map.Entry<UUID, Block> entry = iterator.next();
-            if(entry.getValue().getChunk().equals(event.getChunk()))
-            {
-                entry.getValue().setType(Material.AIR);
-                iterator.remove();
-            }
-        }
-    }
-    
-    @EventHandler(ignoreCancelled = true)
     private void onProjectileLaunch(ProjectileLaunchEvent event)
     {
         if(event.getEntityType() == EntityType.TRIDENT && (event.getEntity().getShooter() instanceof Player))
@@ -292,6 +231,12 @@ public class TridentTweaks extends JavaPlugin implements Listener
                 {
                     event.getEntity().setMetadata("loyalty", new FixedMetadataValue(this,
                             tridentItem.getEnchantmentLevel(Enchantment.LOYALTY)));
+                    
+                    if(enableVoidSaving)
+                    {
+                        LoyaltyTridentTrackerTask trackerTask = new LoyaltyTridentTrackerTask((Trident) event.getEntity(), reflectionUtils);
+                        trackerTask.runTaskTimer(this, 0, 1);
+                    }
                 }
             }
             
