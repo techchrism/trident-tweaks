@@ -5,8 +5,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class LoyaltyTridentTrackerTask extends BukkitRunnable
 {
-    private Trident trident;
-    private ReflectionUtils reflectionUtils;
+    private final Trident trident;
+    private final ReflectionUtils reflectionUtils;
     
     public LoyaltyTridentTrackerTask(Trident trident, ReflectionUtils reflectionUtils)
     {
@@ -20,10 +20,8 @@ public class LoyaltyTridentTrackerTask extends BukkitRunnable
         if(!trident.isValid())
         {
             cancel();
-            return;
         }
-        
-        if(trident.getLocation().getY() < 0)
+        else if(trident.getLocation().getY() < 0)
         {
             reflectionUtils.setDealtDamage(trident, true);
             cancel();
