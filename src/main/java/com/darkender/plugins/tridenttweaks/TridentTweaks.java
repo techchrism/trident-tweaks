@@ -320,13 +320,16 @@ public class TridentTweaks extends JavaPlugin implements Listener
                     return;
                 }
                 
-                for(ItemStack i : p.getInventory())
+                // Start from end of inventory to get the most recently added trident in case duplicates exist
+                ItemStack[] contents = p.getInventory().getContents();
+                for(int i = contents.length - 1; i >= 0; i--)
                 {
-                    if(i != null && i.equals(item))
+                    ItemStack current = contents[i];
+                    if(current != null && current.equals(item))
                     {
                         // If we find the trident and the offhand is clear, put it in the offhand
-                        p.getInventory().setItemInOffHand(i.clone());
-                        i.setAmount(i.getAmount() - 1);
+                        p.getInventory().setItemInOffHand(current.clone());
+                        current.setAmount(current.getAmount() - 1);
                         break;
                     }
                 }
