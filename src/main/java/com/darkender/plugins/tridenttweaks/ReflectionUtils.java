@@ -13,7 +13,16 @@ public class ReflectionUtils
     {
         try
         {
-            Class<?> thrownTridentClass = getNmsClass("EntityThrownTrident");
+            Class<?> thrownTridentClass;
+            try
+            {
+                thrownTridentClass = getNmsClass("EntityThrownTrident");
+            }
+            catch(Exception ignored)
+            {
+                // 1.17+ Mojang mappings
+                thrownTridentClass = Class.forName("net.minecraft.world.entity.projectile.EntityThrownTrident");
+            }
             
             int count = 0;
             for(Field field : thrownTridentClass.getDeclaredFields())
@@ -35,6 +44,7 @@ public class ReflectionUtils
         }
         catch(Exception e)
         {
+            Bukkit.getLogger().severe("Error while loading trident reflection:");
             e.printStackTrace();
         }
     }
