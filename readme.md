@@ -1,14 +1,4 @@
-This plugin adds configuration to change various mechanics of tridents.
-
-Permissions:
- - tridenttweaks.cmd\
-   Allows the player to use the /tridenttweaks command
- - tridenttweaks.reload\
-   Permission to reload the config
-
-Commands:
- - /tridenttweaks reload\
-   Reloads the config
+This plugin adds configuration to change various mechanics of tridents. Designed for Bukkit/Spigot/Paper 26.2+
 
 Config:
 ```yaml
@@ -25,6 +15,6 @@ enable-offhand-return: true
 # (which makes the trident not return until the player goes through the portal)
 disable-loyalty-portals: true
 
-# Makes drowned mobs drop tridents as often as they do in bedrock edition (8% of the time)
+# Makes drowned mobs drop tridents as often as they do in bedrock edition (25% of the time when holding a trident)
 enable-bedrock-dropping: true
 ```

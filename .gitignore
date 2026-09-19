@@ -1,6 +1,5 @@
-# IDE Files
-.idea/
-*.iml
-
-# Build Files
-target/
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/

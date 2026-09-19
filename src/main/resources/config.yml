@@ -11,5 +11,5 @@ enable-offhand-return: true
 # (which makes the trident not return until the player goes through the portal)
 disable-loyalty-portals: true
 
-# Makes drowned mobs drop tridents as often as they do in bedrock edition (8% of the time)
+# Makes drowned mobs drop tridents as often as they do in bedrock edition (25% of the time when holding a trident)
 enable-bedrock-dropping: true
