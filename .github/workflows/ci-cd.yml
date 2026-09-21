@@ -18,7 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            mv result trident-tweaks
+            mv result trident-tweaks.jar
             gh release create ${{ github.ref_name }} \
               trident-tweaks.jar \
               --title "Release ${{ github.ref_name }}" \
