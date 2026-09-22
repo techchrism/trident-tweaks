@@ -13,3 +13,7 @@ disable-loyalty-portals: true
 
 # Makes drowned mobs drop tridents as often as they do in bedrock edition (25% of the time when holding a trident)
 enable-bedrock-dropping: true
+
+# Enables the use of channeling tridents on lightning rods in rainy weather as well as thunderous weather
+# This is how it works on Bedrock edition
+enable-rain-lightning-rod: true

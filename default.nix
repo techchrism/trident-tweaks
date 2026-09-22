@@ -4,7 +4,7 @@
 }:
 pkgs.stdenv.mkDerivation (finalAttrs: {
   pname = "trident-tweaks";
-  version = "2.0.0";
+  version = "2.1.0";
   src = pkgs.nix-gitignore.gitignoreSource [] ./.;
 
   nativeBuildInputs = with pkgs; [ gradle_9 openjdk25_headless ];

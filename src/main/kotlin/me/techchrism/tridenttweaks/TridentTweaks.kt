@@ -9,6 +9,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityPortalEnterEvent
+import org.bukkit.event.entity.ProjectileHitEvent
 import org.bukkit.event.entity.ProjectileLaunchEvent
 import org.bukkit.event.player.PlayerPickupArrowEvent
 import org.bukkit.inventory.meta.Damageable
@@ -28,6 +29,7 @@ class TridentTweaks : JavaPlugin(), Listener {
     private var disableLoyaltyPortals = true
     private var enableBedrockImpaling = true
     private var enableBedrockDropping = true
+    private var enableRainLightningRod = true
 
     override fun onEnable() {
         offhandKey = NamespacedKey(this, "thrown-from-offhand")
@@ -44,6 +46,7 @@ class TridentTweaks : JavaPlugin(), Listener {
         enableOffhandReturn = getConfig().getBoolean("enable-offhand-return")
         disableLoyaltyPortals = getConfig().getBoolean("disable-loyalty-portals")
         enableBedrockDropping = getConfig().getBoolean("enable-bedrock-dropping")
+        enableRainLightningRod = getConfig().getBoolean("enable-rain-lightning-rod")
     }
 
     private fun displayEnchantedHit(entity: Entity) {
@@ -150,5 +153,23 @@ class TridentTweaks : JavaPlugin(), Listener {
         val item = drowned.equipment.itemInMainHand
         item.editMeta { (it as Damageable).damage = random.nextInt(248) + 1 }
         event.drops.add(item)
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private fun onProjectileHit(event: ProjectileHitEvent) {
+        if(!enableRainLightningRod) return
+        val block = event.hitBlock
+        val trident = event.entity
+        if(
+            trident !is Trident ||
+            block == null ||
+            !Tag.LIGHTNING_RODS.isTagged(block.type) ||
+            !(trident.world.hasStorm() && !trident.world.isThundering) ||
+            trident.itemStack.enchantments[Enchantment.CHANNELING] == null ||
+            block.world.getHighestBlockAt(block.location) != block
+        ) return
+
+        trident.world.strikeLightning(block.location.add(0.0, 1.0, 0.0))
+        trident.world.playSound(trident.location, Sound.ITEM_TRIDENT_THUNDER, 1.0f, 1.0f)
     }
 }
